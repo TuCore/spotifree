@@ -11,7 +11,7 @@
         <materialDesign:Card UniformCornerRadius="5" materialDesign:ElevationAssist.Elevation="Dp4">
             <materialDesign:Card.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Đổi tên Album" 
+                    <MenuItem Header="Rename Album" 
                               Command="{Binding RenameCommand}" 
                               CommandParameter="{Binding}">
                         <MenuItem.Icon>
