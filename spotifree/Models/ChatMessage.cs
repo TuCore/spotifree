@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Spotifree.Models
 {
-    public class AppSettings
+    public class ChatMessage
     {
-        public List<string> MusicFolderPaths { get; set; } = new();
-        public bool IsDarkTheme { get; set; }
+        public string Role { get; set; }
+
+        public string Text { get; set; }
     }
 }

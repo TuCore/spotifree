@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22
+VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spotifree", "spotifree\spotifree.csproj", "{A77D1CDC-DCEB-47E9-926E-DEB10C3C4B74}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spotifree", "Spotifree\Spotifree.csproj", "{B686EDA8-5C3B-40DF-8F1B-B33B95A72C94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A77D1CDC-DCEB-47E9-926E-DEB10C3C4B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A77D1CDC-DCEB-47E9-926E-DEB10C3C4B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A77D1CDC-DCEB-47E9-926E-DEB10C3C4B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A77D1CDC-DCEB-47E9-926E-DEB10C3C4B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B686EDA8-5C3B-40DF-8F1B-B33B95A72C94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B686EDA8-5C3B-40DF-8F1B-B33B95A72C94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B686EDA8-5C3B-40DF-8F1B-B33B95A72C94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B686EDA8-5C3B-40DF-8F1B-B33B95A72C94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {654EB601-FECB-4465-850B-7FA049BFFBC3}
+		SolutionGuid = {F5207979-C219-4FF1-8FEF-C29EB4051500}
 	EndGlobalSection
 EndGlobal

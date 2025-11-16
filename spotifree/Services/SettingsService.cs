@@ -1,12 +1,14 @@
-﻿using spotifree.IServices;
-using spotifree.Models;
+﻿using Spotifree.IServices;
+using Spotifree.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Web.WebView2.Wpf;
 
-namespace spotifree.Services
+namespace Spotifree.Services
 {
     public class SettingsService : ISettingsService
     {
@@ -14,65 +16,55 @@ namespace spotifree.Services
 
         public SettingsService()
         {
-            var dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Spotifree");
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LocalMusicPlayer");
             Directory.CreateDirectory(dir);
             _filePath = Path.Combine(dir, "appsettings.json");
         }
 
+        // Loads the application settings from storage.
         public async Task<AppSettings> GetAsync()
         {
+            if (!File.Exists(_filePath))
+            {
+                return new AppSettings();
+            }
+
             try
             {
-                if (!File.Exists(_filePath))
-                {
-                    var def = new AppSettings();
-                    EnsureStorageFolder(def);
-                    await SaveAsync(def);
-                    return def;
-                }
                 var json = await File.ReadAllTextAsync(_filePath);
-                var s = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
-                EnsureStorageFolder(s);
-                return s;
+                return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
             }
             catch
             {
-                var def = new AppSettings();
-                EnsureStorageFolder(def);
-                return def;
+                return new AppSettings();
             }
         }
 
-        public async Task SaveAsync(AppSettings s)
+        // Saves the application settings to storage.
+        public async Task SaveAsync(AppSettings settings)
         {
-            EnsureStorageFolder(s);
-            var json = JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(_filePath, json);
         }
-
-        public void ApplyZoom(WebView2 webView, int percent)
+    public async Task AddMusicFolderAsync(string folderPath)
         {
-            if (webView == null) return;
-            var p = Math.Clamp(percent, 50, 300);
-            // WPF wrapper có thuộc tính ZoomFactor
-            webView.ZoomFactor = p / 100.0;
+            var settings = await GetAsync();
+            // Check trùng lặp (pro)
+            if (!settings.MusicFolderPaths.Contains(folderPath))
+            {
+                settings.MusicFolderPaths.Add(folderPath);
+                await SaveAsync(settings);
+            }
         }
 
-        public void EnsureStorageFolder(AppSettings s)
+        public async Task RemoveMusicFolderAsync(string folderPath)
         {
-            try
+            var settings = await GetAsync();
+            if (settings.MusicFolderPaths.Contains(folderPath))
             {
-                if (string.IsNullOrWhiteSpace(s.OfflineStoragePath))
-                {
-                    s.OfflineStoragePath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "Spotifree", "Storage");
-                }
-                Directory.CreateDirectory(s.OfflineStoragePath);
+                settings.MusicFolderPaths.Remove(folderPath);
+                await SaveAsync(settings);
             }
-            catch { /* ignore */ }
         }
     }
 }

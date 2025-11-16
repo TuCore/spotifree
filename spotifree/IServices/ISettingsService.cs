@@ -1,16 +1,20 @@
-﻿using System.Threading.Tasks;
-using spotifree.Models;
-using Microsoft.Web.WebView2.Wpf;
+﻿using Spotifree.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace spotifree.IServices
+namespace Spotifree.IServices
 {
     public interface ISettingsService
     {
+        // Loads the application settings from storage.
         Task<AppSettings> GetAsync();
-        Task SaveAsync(AppSettings s);
 
-        // tiện ích
-        void ApplyZoom(WebView2 webView, int percent);
-        void EnsureStorageFolder(AppSettings s);
+        // Saves the application settings to storage.
+        Task SaveAsync(AppSettings settings);
+        Task AddMusicFolderAsync(string folderPath);
+        Task RemoveMusicFolderAsync(string folderPath);
     }
 }
