@@ -39,9 +39,14 @@ namespace Spotifree.ViewModels
             //ViewModel
             _playerViewModel = playerViewModel;
             _libraryViewModel = new LibraryViewModel(libraryService, audioPlayer, this);
+            _libraryViewModel.RequestNavigateToSettings += () => NavigateTo(_settingsViewModel);
+
             _settingsViewModel = new SettingsViewModel(settingsService, libraryService, themeService, this);
+
             _currentPageViewModel = _libraryViewModel;
+
             ChatViewModel = chatViewModel;
+            ChatViewModel.RequestNavigateToSettings += () => NavigateTo(_settingsViewModel);
 
             //Command
             NavigateLibraryCommand = new RelayCommand(_ => NavigateTo(_libraryViewModel));

@@ -8,7 +8,9 @@
         
         mc:Ignorable="d"
         Title="MiniPlayerWindow" Height="70" Width="400"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize">
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        Opacity="0.9"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
     <views:MiniPlayerView />
 </Window>

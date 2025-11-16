@@ -34,7 +34,8 @@ namespace Spotifree
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            TrayIconHelper.HandleClosing(SpotifreeIcon);
+            e.Cancel = true;
+            this.Hide();
             base.OnClosing(e);
         }
     }

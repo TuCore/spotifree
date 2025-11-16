@@ -7,9 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using NAudio.Wave;
+using Spotifree.Constances;
 namespace Spotifree.Services;
-#pragma warning disable CA1416
 
+#pragma warning disable CA1416
 public class AudioPlayerService : IAudioPlayerService, IDisposable
 {
     private WaveOutEvent? _waveOut;
@@ -23,6 +24,9 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
     public LocalTrack? CurrentTrack { get; private set; }
     public double CurrentPosition => _audioFile?.CurrentTime.TotalSeconds ?? 0;
     public double Duration => _audioFile?.TotalTime.TotalSeconds ?? 0;
+
+    // Default mode is RepeatAll (User friendly)
+    public RepeatMode RepeatMode { get; set; } = RepeatMode.RepeatAll;
 
     public event Action<PlayerState>? PlaybackStateChanged;
     public event Action<double, double>? PositionChanged;
@@ -49,13 +53,8 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         }
     }
 
-    // Loads a track for playback.
     private Task LoadTrack(LocalTrack track)
     {
-        if (_waveOut != null)
-        {
-            _waveOut.PlaybackStopped -= OnPlaybackStopped;
-        }
         if (_waveOut != null)
         {
             _waveOut.PlaybackStopped -= OnPlaybackStopped;
@@ -63,17 +62,22 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
 
         Stop();
         CurrentTrack = track;
-        _audioFile = new AudioFileReader(track.FilePath);
-
-        _waveOut = _waveOut ?? new WaveOutEvent();
-        _waveOut.Init(_audioFile);
-        _waveOut.PlaybackStopped += OnPlaybackStopped;
-
-        _waveOut.Volume = (float)_currentVolume;
+        try
+        {
+            _audioFile = new AudioFileReader(track.FilePath);
+            _waveOut = _waveOut ?? new WaveOutEvent();
+            _waveOut.Init(_audioFile);
+            _waveOut.PlaybackStopped += OnPlaybackStopped;
+            _waveOut.Volume = (float)_currentVolume;
+        }
+        catch (Exception)
+        {
+            // Handle corrupt file gracefully, maybe skip to next
+            SkipNext();
+        }
         return Task.CompletedTask;
     }
 
-    // Starts or resumes playback.
     public void Play()
     {
         if (_waveOut == null || CurrentTrack == null) return;
@@ -83,7 +87,6 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         _positionTimer.Start();
     }
 
-    // Pauses playback.
     public void Pause()
     {
         if (_waveOut == null) return;
@@ -92,9 +95,6 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         _positionTimer.Stop();
     }
 
-    /// <summary>
-    /// Stops playback and resets position.
-    /// </summary>
     public void Stop()
     {
         if (_waveOut != null)
@@ -110,7 +110,6 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         CleanUp();
     }
 
-    // Seeks to a specific position in the track.
     public void Seek(double positionSeconds)
     {
         if (_audioFile == null) return;
@@ -122,7 +121,7 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
 
     public void SetVolume(double volume)
     {
-        _currentVolume = Math.Clamp(volume, 0.0, 1.0); 
+        _currentVolume = Math.Clamp(volume, 0.0, 1.0);
         if (_waveOut != null)
         {
             _waveOut.Volume = (float)_currentVolume;
@@ -141,9 +140,20 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
 
     public async void SkipNext()
     {
+        if (!_playlist.Any()) return;
+
+        // Logic for manual skip (User clicks Next)
+        // Usually manual skip ignores RepeatOne, but respects Playlist boundaries
         if (_currentIndex < _playlist.Count - 1)
         {
             _currentIndex++;
+            await LoadTrack(_playlist[_currentIndex]);
+            Play();
+        }
+        else if (RepeatMode == RepeatMode.RepeatAll)
+        {
+            // Loop back to start
+            _currentIndex = 0;
             await LoadTrack(_playlist[_currentIndex]);
             Play();
         }
@@ -151,6 +161,13 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
 
     public async void SkipPrevious()
     {
+        if (CurrentPosition > 3.0)
+        {
+            // If playing for more than 3s, replay from start
+            Seek(0);
+            return;
+        }
+
         if (_currentIndex > 0)
         {
             _currentIndex--;
@@ -159,19 +176,42 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         }
     }
 
-    private void OnPlaybackStopped(object? sender, StoppedEventArgs e)
+    // Auto logic when track ends
+    private async void OnPlaybackStopped(object? sender, StoppedEventArgs e)
     {
-        if (CurrentState == PlayerState.Playing && _currentIndex < _playlist.Count - 1)
+        if (CurrentState != PlayerState.Playing) return; // Stopped manually
+
+        TrackEnded?.Invoke();
+
+        if (RepeatMode == RepeatMode.RepeatOne)
         {
-            TrackEnded?.Invoke(); 
-            SkipNext(); 
+            // Replay current
+            _audioFile!.Position = 0;
+            Play();
             return;
         }
 
-        SetState(PlayerState.Stopped);
-        _positionTimer.Stop();
-        CleanUp();
+        // Logic for auto skip
+        if (_currentIndex < _playlist.Count - 1)
+        {
+            _currentIndex++;
+            await LoadTrack(_playlist[_currentIndex]);
+            Play();
+        }
+        else if (RepeatMode == RepeatMode.RepeatAll)
+        {
+            // Loop back
+            _currentIndex = 0;
+            await LoadTrack(_playlist[_currentIndex]);
+            Play();
+        }
+        else
+        {
+            // End of playlist, stop
+            Stop();
+        }
     }
+
     private void SetState(PlayerState newState)
     {
         if (CurrentState == newState) return;
@@ -194,11 +234,10 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         }
     }
 
-    // Disposes NAudio resources.
     public void Dispose()
     {
         Stop();
         _positionTimer.Stop();
     }
 }
-#pragma warning disable CA1416
+#pragma warning restore CA1416

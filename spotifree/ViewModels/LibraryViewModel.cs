@@ -12,10 +12,17 @@ namespace Spotifree.ViewModels
         private readonly IMusicLibraryService _libraryService;
         private readonly IAudioPlayerService _player;
         private readonly MainViewModel _mainViewModel;
-
+        private bool _hasAlbums;
+        public event Action RequestNavigateToSettings;
         public ObservableCollection<AlbumViewModel> Albums { get; }
+        public bool HasAlbums
+        {
+            get => _hasAlbums;
+            set => SetProperty(ref _hasAlbums, value);
+        }
 
         public ICommand SelectAlbumCommand { get; }
+        public ICommand GoToSettingsCommand { get; }
         public LibraryViewModel(
             IMusicLibraryService library,
             IAudioPlayerService player,
@@ -29,6 +36,7 @@ namespace Spotifree.ViewModels
             _libraryService.LibraryChanged += OnLibraryChanged;
             LoadAlbums();
             SelectAlbumCommand = new RelayCommand(ExecuteSelectAlbum);
+            GoToSettingsCommand = new RelayCommand(_ => RequestNavigateToSettings?.Invoke());
 
         }
         private void ExecuteSelectAlbum(object? param)
@@ -62,11 +70,12 @@ namespace Spotifree.ViewModels
             {
                 Albums.Add(album);
             }
+            HasAlbums = Albums.Any();
         }
 
         private void OnLibraryChanged()
         {
-            LoadAlbums();
+            System.Windows.Application.Current.Dispatcher.Invoke(LoadAlbums);
         }
 
         private BitmapImage? LoadImageFromBytes(byte[]? imageData)

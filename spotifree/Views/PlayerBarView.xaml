@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:Spotifree.Views"
+        xmlns:converters="clr-namespace:Spotifree.Converters"
         mc:Ignorable="d"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Height="80" Background="#1c1c1c" Width="1100">
@@ -14,24 +15,35 @@
         <Style TargetType="TextBlock" x:Key="ArtistText" BasedOn="{StaticResource MaterialDesignBody2TextBlock}">
             <Setter Property="Foreground" Value="Gray" />
         </Style>
+        <converters:RepeatModeIconConverter x:Key="RepeatModeIconConverter" />
+        <converters:RepeatModeColorConverter x:Key="RepeatModeColorConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="261*"/>
+            <ColumnDefinition Width="581*"/>
+            <ColumnDefinition Width="258*"/>
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="10,0,10,0" Height="58">
-            <TextBlock Text="{Binding CurrentTrack.Title, FallbackValue='Not Playing'}" Foreground="White" FontWeight="Bold"/>
-            <TextBlock Text="{Binding CurrentTrack.Artist, FallbackValue='...'}" Foreground="Gray"/>
+            <TextBlock Text="{Binding CurrentTrack.Title, FallbackValue='Sẵn sàng'}" Foreground="White" FontWeight="Bold"/>
+            <TextBlock Text="{Binding CurrentTrack.Artist, FallbackValue='Hãy chọn bài hát'}" Foreground="Gray"/>
         </StackPanel>
 
-        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Height="80" Width="367">
-            <StackPanel Orientation="Horizontal" Width="152">
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Height="80" Width="400">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+                <Button Style="{StaticResource MaterialDesignIconButton}" Margin="5" 
+                        Command="{Binding ToggleRepeatCommand}"
+                        ToolTip="Chế độ lặp">
+                    <materialDesign:PackIcon 
+                        Kind="{Binding RepeatMode, Converter={StaticResource RepeatModeIconConverter}}" 
+                        Foreground="{Binding RepeatMode, Converter={StaticResource RepeatModeColorConverter}}"
+                        Width="24" Height="24"/>
+                </Button>
 
                 <Button Style="{StaticResource MaterialDesignIconButton}" Margin="5" Command="{Binding SkipPreviousCommand}">
-                    <materialDesign:PackIcon Kind="SkipPrevious" />
+                    <materialDesign:PackIcon Kind="SkipPrevious" Foreground="White"/>
                 </Button>
 
                 <Button Style="{DynamicResource MaterialDesignFloatingActionMiniButton}" 
@@ -40,27 +52,32 @@
                 </Button>
 
                 <Button Style="{StaticResource MaterialDesignIconButton}" Margin="5" Command="{Binding SkipNextCommand}">
-                    <materialDesign:PackIcon Kind="SkipNext" />
+                    <materialDesign:PackIcon Kind="SkipNext" Foreground="White"/>
                 </Button>
+
             </StackPanel>
-            <Slider Width="300" Minimum="0" 
+            <Slider Width="325" Minimum="0" 
                 Maximum="{Binding Duration, FallbackValue=100}" 
                 Value="{Binding CurrentPosition, Mode=TwoWay}"/>
         </StackPanel>
-        
-        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,68,0" Height="26">
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0" Height="48">
             <materialDesign:PackIcon Kind="VolumeHigh" Foreground="White" VerticalAlignment="Center" Margin="5"/>
-            <Slider Width="154" 
+            <Slider Width="120" 
                     Minimum="0.0" 
                     Maximum="1.0" 
                     Value="{Binding Volume, Mode=TwoWay}"
-                    RenderTransformOrigin="0.498,0.45" Height="21" />
-        </StackPanel>
-        
-        <Button Style="{StaticResource MaterialDesignIconButton}"
+                    RenderTransformOrigin="0.498,0.45" Height="20" />
+            
+            <TextBlock Text="" Width="30" HorizontalAlignment="Stretch"/>
+
+            <Button Style="{StaticResource MaterialDesignIconButton}"
                 ToolTip="Chuyển sang Mini Player"
-                Command="{Binding SwitchToMiniModeCommand}" Grid.Column="2" Margin="299,16,20,16">
-            <materialDesign:PackIcon Kind="ArrowCollapse" Height="36" Width="36" />
-        </Button>
+                Command="{Binding SwitchToMiniModeCommand}" Width="60"
+                    >
+                <materialDesign:PackIcon Kind="ArrowCollapse" Height="24" Width="24" Foreground="White" VerticalAlignment="Center"  />
+            </Button>
+        </StackPanel>
+
     </Grid>
 </UserControl>

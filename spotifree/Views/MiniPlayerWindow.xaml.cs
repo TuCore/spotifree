@@ -1,5 +1,6 @@
 ﻿using Spotifree.ViewModels;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Spotifree.Views
 {
@@ -13,6 +14,13 @@ namespace Spotifree.Views
         }
         public MiniPlayerWindow() : this(null!)
         {
+        }
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
         }
     }
 }

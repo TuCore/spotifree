@@ -49,7 +49,7 @@ namespace Spotifree
 
             //Window
             services.AddSingleton<MainWindow>();
-            services.AddTransient<MiniPlayerWindow>(sp =>
+            services.AddSingleton<MiniPlayerWindow>(sp =>
         new MiniPlayerWindow(sp.GetRequiredService<PlayerViewModel>()));
 
         }

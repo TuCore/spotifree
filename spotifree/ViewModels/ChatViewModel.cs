@@ -16,6 +16,8 @@ namespace Spotifree.ViewModels
         private readonly IGeminiService _geminiService;
         private readonly IConnectivityService _connectivityService;
 
+        public event Action RequestNavigateToSettings;
+
         public ObservableCollection<ChatMessage> Messages { get; }
 
         private string _currentMessage = string.Empty;
