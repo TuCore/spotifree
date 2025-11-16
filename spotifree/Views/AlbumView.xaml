@@ -9,6 +9,17 @@
     <Grid>
 
         <materialDesign:Card UniformCornerRadius="5" materialDesign:ElevationAssist.Elevation="Dp4">
+            <materialDesign:Card.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Đổi tên Album" 
+                              Command="{Binding RenameCommand}" 
+                              CommandParameter="{Binding}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="RenameBox" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </materialDesign:Card.ContextMenu>
             <StackPanel>
                 <Image Source="{Binding CoverArt, FallbackValue='default_cover.png'}" Height="160" Stretch="UniformToFill" />
 

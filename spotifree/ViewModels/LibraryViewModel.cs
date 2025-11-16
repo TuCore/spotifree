@@ -1,4 +1,5 @@
-﻿using Spotifree.IServices;
+﻿using Microsoft.VisualBasic;
+using Spotifree.IServices;
 using Spotifree.Models;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -47,6 +48,26 @@ namespace Spotifree.ViewModels
             }
         }
 
+        private async void ExecuteRenameAlbum(object? param)
+        {
+            if (param is AlbumViewModel album)
+            {
+                // Hiện hộp thoại nhập tên từ thư viện VisualBasic
+                string newName = Interaction.InputBox(
+                    $"Nhập tên mới cho album '{album.Name}':",
+                    "Đổi tên Album",
+                    album.Name
+                );
+
+                // Nếu người dùng nhập gì đó và khác tên cũ
+                if (!string.IsNullOrWhiteSpace(newName) && newName != album.Name)
+                {
+                    // Gọi Service đổi tên file
+                    await _libraryService.UpdateAlbumNameAsync(album.Name, album.Artist, newName);
+                }
+            }
+        }
+
         private async void LoadAlbums()
         {
             Albums.Clear();
@@ -57,13 +78,16 @@ namespace Spotifree.ViewModels
                 return;
             }
 
+            var renameCommand = new RelayCommand(ExecuteRenameAlbum);
+
             var groupedByAlbum = tracks
                 .GroupBy(t => new { AlbumName = t.Album ?? "Unknown Album", ArtistName = t.Artist ?? "Unknown Artist" })
                 .Select(g => new AlbumViewModel(
                     g.Key.AlbumName,
                     g.Key.ArtistName,
                     LoadImageFromBytes(g.First().CoverArt),
-                    new ObservableCollection<LocalTrack>(g.ToList())
+                    new ObservableCollection<LocalTrack>(g.ToList()),
+                    renameCommand
                 ));
 
             foreach (var album in groupedByAlbum)
