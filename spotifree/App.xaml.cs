@@ -1,97 +1,89 @@
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using spotifree.IServices;
-using spotifree.Models;
-using spotifree.Services;
-using spotifree.ViewModels;
-using System.Drawing;
+using Spotifree.IServices;
+using Spotifree.Services;
+using Spotifree.ViewModels;
+using Spotifree.Views;
+using System;
+using System.Configuration;
+using System.Data;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-
-namespace spotifree;
-
-public partial class App : Application
+namespace Spotifree
 {
-    private IServiceProvider _serviceProvider;
-    private System.Windows.Forms.NotifyIcon _trayIcon;
-
-    private const string ClientId = "5289d37828a5414485019a41cccad2bd";
-
-    private const string RedirectUri = "http://127.0.0.1:5173/callback";
-
-    private const string Scopes = "streaming user-read-email user-read-private " +
-                   "user-read-playback-state user-modify-playback-state " +
-                   "playlist-read-private playlist-modify-private " +
-                   "user-read-recently-played user-top-read";
-
-    public IServiceProvider ServiceProvider => _serviceProvider;
-
-    public App()
+    // Interaction logic for App.xaml
+    public partial class App : Application
     {
-        IServiceCollection services = new ServiceCollection();
-
-        ConfigureServices(services);
-
-        _serviceProvider = services.BuildServiceProvider();
-    }
-
-    private void ConfigureServices(IServiceCollection services)
-    {
-
-        // Services
-        services.AddSingleton(new SpotifyAuth(ClientId, RedirectUri, Scopes));
-        services.AddSingleton<ISpotifyService, SpotifyApi>();
-        services.AddSingleton<ILocalMusicService, LocalMusicService>();
-        services.AddSingleton<ISettingsService, SettingsService>();
-
-        services.AddSingleton<LocalLibraryService<LocalMusicTrack>>(provider =>
+        public static IServiceProvider? ServiceProvider { get; private set; }
+        public static IConfiguration? Configuration { get; private set; }
+        public App()
         {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "library.json");
-            return new LocalLibraryService<LocalMusicTrack>(path);
-        });
+        }
 
+        // Configures the dependency injection container.
+        private void ConfigureServices(IServiceCollection services)
+        {
+            //Service
+            services.AddSingleton<ISettingsService, SettingsService>();
+            services.AddSingleton<IAudioPlayerService, AudioPlayerService>();
+            services.AddSingleton<IMusicLibraryService, MusicLibraryService>();
+            services.AddSingleton<IThemeService, ThemeService>();
+            services.AddSingleton<IViewModeService, ViewModeService>();
+            services.AddSingleton<IConnectivityService, ConnectivityService>();
 
-        services.AddTransient<MainViewModel>();
+            //ViewModel
+            services.AddSingleton<PlayerViewModel>();
+            services.AddSingleton<MainViewModel>();
+            services.AddTransient<LibraryViewModel>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<AlbumDetailViewModel>();
+            services.AddTransient<ChatViewModel>();
 
-        // Windows
+            // IGeminiService (Singleton)
+            services.AddSingleton<IGeminiService>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                string apiKey = config["Gemini:ApiKey"] ?? "";
+                return new GeminiService(apiKey);
+            });
 
-        services.AddSingleton<Spotifree>();
-        services.AddTransient<MusicDetail>();
+            //Window
+            services.AddSingleton<MainWindow>();
+            services.AddSingleton<MiniPlayerWindow>(sp =>
+        new MiniPlayerWindow(sp.GetRequiredService<PlayerViewModel>()));
+
+        }
+
+        // Application startup event handler.
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+            Configuration = builder.Build();
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection.AddSingleton<IConfiguration>(Configuration);
+
+            ConfigureServices(serviceCollection);
+
+            ServiceProvider = serviceCollection.BuildServiceProvider();
+
+            var geminiApiKey = Configuration["Gemini:ApiKey"];
+            if (string.IsNullOrEmpty(geminiApiKey))
+            {
+                MessageBox.Show("Error: API Key was not set in appsettings.json!",
+                                "Error Config", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+
+            mainWindow.DataContext = ServiceProvider.GetRequiredService<MainViewModel>();
+
+            mainWindow.Show();
+        }
     }
-
-    protected override void OnStartup(StartupEventArgs e)
-    {
-        var spotifree = _serviceProvider.GetRequiredService<Spotifree>();
-        spotifree.Show();
-        base.OnStartup(e);
-        ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
-        _trayIcon = new System.Windows.Forms.NotifyIcon();
-        var uri = new Uri("pack://application:,,,/app.ico");
-        var streamInfo = Application.GetResourceStream(uri);
-        _trayIcon.Icon = new Icon(streamInfo.Stream);
-        _trayIcon.Text = "Spotifree";
-        _trayIcon.Visible = true;
-
-
-        var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-        contextMenu.Items.Add("Open", null, (s, ev) => Open_Click(s, null));
-        contextMenu.Items.Add("Exit", null, (s, ev) => Exit_Click(s, null));
-
-        _trayIcon.ContextMenuStrip = contextMenu;
-
-        _trayIcon.DoubleClick += (s, ev) => Open_Click(s, null);
-    }
-    private void Open_Click(object sender, RoutedEventArgs e)
-    {
-        Current.MainWindow?.Show();
-        Current.MainWindow.WindowState = WindowState.Normal;
-        Current.MainWindow.Activate();
-    }
-
-    private void Exit_Click(object sender, RoutedEventArgs e)
-    {
-        Current.Shutdown();
-    }
-
 }
