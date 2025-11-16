@@ -13,8 +13,15 @@ namespace Spotifree.ViewModels
         private double _currentPosition;
         private double _duration;
         private double _volume;
+        private double _audioLevel;
         private RepeatMode _repeatMode;
         private readonly IViewModeService _viewModeService;
+
+        public double AudioLevel
+        {
+            get => _audioLevel;
+            set => SetProperty(ref _audioLevel, value);
+        }
 
         public LocalTrack? CurrentTrack
         {
@@ -95,6 +102,20 @@ namespace Spotifree.ViewModels
 
             Volume = _player.GetVolume();
             RepeatMode = _player.RepeatMode;
+
+            _player.AudioLevelChanged += (level) =>
+            {
+                // Chỉ cập nhật khi đang chơi nhạc
+                if (IsPlaying)
+                {
+                    // Cập nhật UI (SetProperty đã xử lý NotifyPropertyChanged)
+                    AudioLevel = level;
+                }
+                else
+                {
+                    AudioLevel = 0;
+                }
+            };
         }
 
         private void ExecuteToggleRepeat(object? obj)

@@ -31,6 +31,7 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
     public event Action<PlayerState>? PlaybackStateChanged;
     public event Action<double, double>? PositionChanged;
     public event Action? TrackEnded;
+    public event Action<float>? AudioLevelChanged;
 
     public AudioPlayerService()
     {
@@ -65,6 +66,8 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         try
         {
             _audioFile = new AudioFileReader(track.FilePath);
+            var meteringProvider = new MeteringSampleProvider(_audioFile);
+            meteringProvider.StreamVolume += OnStreamVolume;
             _waveOut = _waveOut ?? new WaveOutEvent();
             _waveOut.Init(_audioFile);
             _waveOut.PlaybackStopped += OnPlaybackStopped;
@@ -76,6 +79,11 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
             SkipNext();
         }
         return Task.CompletedTask;
+    }
+
+    private void OnStreamVolume(float level)
+    {
+        AudioLevelChanged?.Invoke(level);
     }
 
     public void Play()
