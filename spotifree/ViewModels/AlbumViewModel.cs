@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace Spotifree.ViewModels
@@ -15,13 +16,14 @@ namespace Spotifree.ViewModels
         public string Artist { get; }
         public BitmapImage? CoverArt { get; }
         public ObservableCollection<LocalTrack> Tracks { get; }
-
-        public AlbumViewModel(string name, string artist, BitmapImage? coverArt, ObservableCollection<LocalTrack> tracks)
+        public ICommand RenameCommand { get; }
+        public AlbumViewModel(string name, string artist, BitmapImage? coverArt, ObservableCollection<LocalTrack> tracks, ICommand renameCommand)
         {
             Name = name;
             Artist = artist;
             CoverArt = coverArt;
             Tracks = tracks;
+            RenameCommand = renameCommand;
         }
     }
 }

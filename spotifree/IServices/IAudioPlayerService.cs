@@ -21,6 +21,8 @@ namespace Spotifree.IServices
 
         event Action TrackEnded;
 
+        event Action<float> AudioLevelChanged;
+
 
 
         Task LoadPlaylist(IEnumerable<LocalTrack> playlist, int startIndex = 0);

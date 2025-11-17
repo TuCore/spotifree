@@ -7,7 +7,7 @@
         xmlns:converters="clr-namespace:Spotifree.Converters"
         mc:Ignorable="d"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Height="80" Background="#1c1c1c" Width="1100">
+        Height="80" Background="Black" Opacity="0.7" Width="1100">
     <UserControl.Resources>
         <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
             <Setter Property="Foreground" Value="Black" />
